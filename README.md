@@ -237,11 +237,12 @@ Alice moved from #4 to #3
 
 ## 👥 Contributors
 
-| Name | Roll No. | Role |
-|---|---|---|
-| `<Member 1>` | `<ID>` | `<e.g. Core data structure>` |
-| `<Member 2>` | `<ID>` | `<e.g. Leaderboard API & CLI>` |
-| `<Member 3>` | `<ID>` | `<e.g. Testing & benchmarks>` |
+| Name | Roll No. | Role | Responsibilities |
+|---|---|---|---|
+| `<Member 1>` | `<ID>` | Core Data Structure | Node and level design, random level generation, rank-span maintenance, insert and delete |
+| `<Member 2>` | `<ID>` | Rank & Query Operations | `getRank`, `getByRank`, `topK`, neighbour queries, range queries |
+| `<Member 3>` | `<ID>` | Leaderboard API & Demo | Leaderboard wrapper with hash map, score update logic, tie-breaking, CLI / demo driver |
+| `<Member 4>` | `<ID>` | Testing, Benchmarks & Docs | Unit and stress tests, benchmark vs. sorted array, README and project report |
 
 ---
 

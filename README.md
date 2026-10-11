@@ -239,10 +239,10 @@ Alice moved from #4 to #3
 
 | Name | Roll No. | Role | Responsibilities |
 |---|---|---|---|
-| `Abhijith` | `<ID>` | Core Data Structure | Node and level design, random level generation, rank-span maintenance, insert and delete |
-| `Rajaneesh` | `<ID>` | Rank & Query Operations | `getRank`, `getByRank`, `topK`, neighbour queries, range queries |
-| `Haripranav Rajesh` | `<ID>` | Leaderboard API & Demo | Leaderboard wrapper with hash map, score update logic, tie-breaking, CLI / demo driver |
-| `Santhosh Reddy` | `<ID>` | Testing, Benchmarks & Docs | Unit and stress tests, benchmark vs. sorted array, README and project report |
+| `Abhijith` | `CB.SC.U4CSE25316` | Core Data Structure | Node and level design, random level generation, rank-span maintenance, insert and delete |
+| `Rajaneesh` | `CB.SC.U4CSE25362` | Rank & Query Operations | `getRank`, `getByRank`, `topK`, neighbour queries, range queries |
+| `Haripranav Rajesh` | `CB.SC.U4CSE25322` | Leaderboard API & Demo | Leaderboard wrapper with hash map, score update logic, tie-breaking, CLI / demo driver |
+| `Santhosh Reddy` | `CB.SC.U4CSE25327` | Testing, Benchmarks & Docs | Unit and stress tests, benchmark vs. sorted array, README and project report |
 
 ---
 

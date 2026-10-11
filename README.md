@@ -246,6 +246,4 @@ Alice moved from #4 to #3
 
 ---
 
-## 📄 License
 
-This project is for academic purposes. Add a license (e.g., MIT) if you plan to share it publicly.

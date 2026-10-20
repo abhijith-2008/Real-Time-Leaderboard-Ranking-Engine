@@ -150,8 +150,8 @@ A score update is performed as **delete old entry → insert new entry**. A `Has
 ### Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/abhijith-2008/Real-Time-Leaderboard-Ranking-Engine.git
+cd Real-Time -Leaderboard-Ranking-Engine
 ```
 
 ### Build & run

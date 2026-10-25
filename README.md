@@ -3,8 +3,8 @@
 A real-time leaderboard engine for large-scale online games, built on an **Indexable Skip List** (a skip list augmented with *rank spans*). It supports fast score updates, rank lookups, top-K queries, and "players around me" queries, all in **O(log n)** expected time.
 
 > **DSA Project** · Data Structures & Algorithms
-> **Team:** `<Member 1>`, `<Member 2>`, `<Member 3>`
-> **Institution / Course:** `<College Name>` · `<Course Code>`
+> **Team:** `Ch.Abhijith`, `V.Rajaneesh`, `Haripranav Rajesh`,`K.Santhosh Reddy`
+> **Institution / Course:** `Amrita Vishwavidyappetham Coimbatore` · `23CSE203`
 
 ---
 

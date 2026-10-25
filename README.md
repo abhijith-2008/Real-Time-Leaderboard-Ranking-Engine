@@ -4,7 +4,7 @@ A real-time leaderboard engine for large-scale online games, built on an **Index
 
 > **DSA Project** · Data Structures & Algorithms
 > **Team:** Abhijith, Rajaneesh, Haripranav Rajesh, Santhosh Reddy
-> **Institution / Course:** Amrita Vishwa Vidyapeetham, Coimbatore · `<Course Code>`
+> **Institution / Course:** Amrita Vishwa Vidyapeetham, Coimbatore · Data Structures & Algorithms
 
 ---
 
@@ -209,19 +209,29 @@ Other commands: `remove`, `score`, `at <rank>`, `around <name> [radius]`, `size`
 
 ## 🧪 Testing & Benchmarks
 
-**Correctness:** every operation is cross-checked against a brute-force sorted-list implementation over thousands of random operations, verifying ranks, top-K output, and span consistency after each insert/delete.
+Run everything with:
 
-**Benchmarks:** compare the skip list against a sorted array as player count grows.
+```bash
+make test    # all correctness tests and the stress test
+make bench   # benchmark table
+```
 
-Run `make bench` and paste the table it prints. Times are average microseconds per operation.
+**Correctness:**
+
+- `test_core` inserts and removes thousands of entries (including heavy score ties) and runs the span validator after every operation.
+- `test_query` compares `getRank`, `getByRank`, `topK`, `neighbours`, `rangeByRank` and `rangeByScore` against a plain sorted vector, including edge cases (empty list, out-of-range ranks, unknown players).
+- `test_leaderboard` checks the game-facing API: updates, ties, removals and unknown players.
+- `stress_test` runs 100,000 random operations on the skip list leaderboard and on a brute-force sorted-vector baseline, comparing every result, and validates the structure's spans throughout.
+
+**Benchmarks:** measured with `make bench` on WSL2 (Ubuntu), `g++ -std=c++17 -O2`. Times are average microseconds per operation (lower is better). Top-K uses K = 100.
 
 | Players (n) | Skip List update | Sorted Array update | Skip List rank | Sorted Array rank | Skip List top-K | Sorted Array top-K |
 |---|---|---|---|---|---|---|
-| 10,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
-| 100,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
-| 1,000,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
+| 10,000 | 1.30 | 43.82 | 0.56 | 0.25 | 1.29 | 0.64 |
+| 100,000 | 3.57 | 428.97 | 1.62 | 0.49 | 0.99 | 0.64 |
+| 1,000,000 | 9.33 | 4480.93 | 3.92 | 1.31 | 1.08 | 0.63 |
 
-*(Fill in with your measured results.)*
+**Reading the results:** score updates are where the skip list wins decisively, about 34x faster at 10,000 players and about 480x faster at 1,000,000, because the sorted array must shift O(n) elements on every update. The sorted array stays faster for rank lookups and top-K, since binary search and copying a contiguous block are very cache friendly, while a skip list follows pointers. Both rank lookups are O(log n), so that gap is a constant factor. The skip list is the only structure here that keeps updates, rank queries and top-K all fast as the player count grows. Sorted array update averages use 20,000, 2,000 and 200 operations for the three sizes, because each update is O(n).
 
 ---
 

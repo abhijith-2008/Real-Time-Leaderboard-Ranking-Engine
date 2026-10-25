@@ -3,8 +3,8 @@
 A real-time leaderboard engine for large-scale online games, built on an **Indexable Skip List** (a skip list augmented with *rank spans*). It supports fast score updates, rank lookups, top-K queries, and "players around me" queries, all in **O(log n)** expected time.
 
 > **DSA Project** · Data Structures & Algorithms
-> **Team:** `Ch.Abhijith`, `V.Rajaneesh`, `Haripranav Rajesh`,`K.Santhosh Reddy`
-> **Institution / Course:** `Amrita Vishwavidyappetham Coimbatore` · `23CSE203`
+> **Team:** Abhijith, Rajaneesh, Haripranav Rajesh, Santhosh Reddy
+> **Institution / Course:** Amrita Vishwa Vidyapeetham, Coimbatore · `<Course Code>`
 
 ---
 
@@ -120,21 +120,28 @@ A score update is performed as **delete old entry → insert new entry**. A `Has
 
 ## 📁 Project Structure
 
-> Adjust this to match your actual repo layout.
-
 ```
 .
+├── include/
+│   ├── types.h                 # Entry, ordering rule (before), constants
+│   ├── IndexableSkipList.h     # Skip list class + rank span invariants
+│   └── Leaderboard.h           # Game-facing API
 ├── src/
-│   ├── IndexableSkipList.*     # Core data structure (nodes, levels, spans)
-│   ├── Leaderboard.*           # Game-facing API built on top of the skip list
-│   └── main.*                  # Demo / CLI driver
+│   ├── skiplist_core.cpp       # Node/levels, random level, insert, remove
+│   ├── skiplist_query.cpp      # getRank, getByRank, topK, neighbours, ranges
+│   ├── skiplist_validate.cpp   # Debug checker for ordering and span invariants
+│   ├── Leaderboard.cpp         # Hash map + skip list wrapper
+│   └── main.cpp                # CLI demo
 ├── tests/
-│   ├── correctness_tests.*     # Unit tests for insert/delete/rank/top-K
-│   └── stress_test.*           # Randomized tests vs. brute-force baseline
+│   ├── test_core.cpp           # insert/remove + span validation
+│   ├── test_query.cpp          # every query vs. a sorted vector
+│   ├── test_leaderboard.cpp    # wrapper behaviour, ties, removals
+│   ├── naive_leaderboard.h     # Sorted-vector baseline
+│   └── stress_test.cpp         # 100,000 random ops vs. the baseline
 ├── benchmarks/
-│   └── benchmark.*             # Skip list vs. sorted array performance
-├── docs/
-│   └── report.pdf              # Project report / presentation (optional)
+│   └── benchmark.cpp           # Skip list vs. sorted array
+├── Makefile
+├── OWNERS.md
 └── README.md
 ```
 
@@ -144,30 +151,25 @@ A score update is performed as **delete old entry → insert new entry**. A `Has
 
 ### Prerequisites
 
-- `<Language / compiler / runtime, e.g. g++ 11+, Java 17, Python 3.10+>`
-- `<Build tool if any, e.g. make, cmake, maven>`
+- A C++17 compiler (`g++` 9 or newer, or `clang++`)
+- `make` (on Windows use MSYS2/MinGW or WSL)
 
 ### Clone the repository
 
 ```bash
 git clone https://github.com/abhijith-2008/Real-Time-Leaderboard-Ranking-Engine.git
-cd Real-Time -Leaderboard-Ranking-Engine
+cd Real-Time-Leaderboard-Ranking-Engine
 ```
 
 ### Build & run
 
 ```bash
-# Replace with the commands for your language, for example:
+make                                   # builds build/leaderboard
+./build/leaderboard                    # interactive CLI (type "help")
+./build/leaderboard --no-prompt < commands.txt   # scripted run
 
-# C++
-g++ -std=c++17 -O2 src/*.cpp -o leaderboard
-./leaderboard
-
-# Java
-javac src/*.java -d out && java -cp out Main
-
-# Python
-python src/main.py
+make test                              # all tests
+make bench                             # benchmark table
 ```
 
 ---
@@ -176,14 +178,18 @@ python src/main.py
 
 ```text
 > add Alice 1500
+Alice added at #1 with score 1500
 > add Bob 2300
+Bob added at #1 with score 2300
 > add Charlie 1800
+Charlie added at #2 with score 1800
 > add Dave 2300
+Dave added at #2 with score 2300
 
 > top 3
-1. Bob      2300
-2. Dave     2300
-3. Charlie  1800
+1. Bob         2300
+2. Dave        2300
+3. Charlie     1800
 
 > rank Alice
 Alice is ranked #4 with score 1500
@@ -191,13 +197,13 @@ Alice is ranked #4 with score 1500
 > update Alice 2000
 Alice moved from #4 to #3
 
-> around Charlie 1
-2. Dave     2300
-3. Alice    2000
-4. Charlie  1800
+> around Alice 1
+2. Dave        2300
+3. Alice       2000
+4. Charlie     1800
 ```
 
-*(Replace with real output from your implementation.)*
+Other commands: `remove`, `score`, `at <rank>`, `around <name> [radius]`, `size`, `help`, `quit`.
 
 ---
 
@@ -207,11 +213,13 @@ Alice moved from #4 to #3
 
 **Benchmarks:** compare the skip list against a sorted array as player count grows.
 
-| Players (n) | Skip List (update) | Sorted Array (update) |
-|---|---|---|
-| 10,000 | `<fill in>` | `<fill in>` |
-| 100,000 | `<fill in>` | `<fill in>` |
-| 1,000,000 | `<fill in>` | `<fill in>` |
+Run `make bench` and paste the table it prints. Times are average microseconds per operation.
+
+| Players (n) | Skip List update | Sorted Array update | Skip List rank | Sorted Array rank | Skip List top-K | Sorted Array top-K |
+|---|---|---|---|---|---|---|
+| 10,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
+| 100,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
+| 1,000,000 | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` | `<fill in>` |
 
 *(Fill in with your measured results.)*
 

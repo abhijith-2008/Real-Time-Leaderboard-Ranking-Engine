@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131b">
+  <title>RankForge — Live Leaderboard</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b0e16;--panel:#161a26;--panel2:#1b2030;--border:#2b3040;--muted:#9da6b8;--text:#f4f5fa;--accent:#9475ff;--lime:#baf08d;--red:#fb888e}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);background:radial-gradient(ellipse 42% 32% at 53% 0%,#27204770,transparent),var(--bg)}
+    button,input,select{font:inherit}button{cursor:pointer;transition:background .15s,transform .15s}button:hover{transform:translateY(-1px)}button:disabled{opacity:.55;cursor:wait}a{color:inherit;text-decoration:none}
+    .layout{max-width:1500px;margin:auto;display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+    aside{border-right:1px solid var(--border);padding:32px 20px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+    .brand{font-weight:850;font-size:22px;letter-spacing:-.9px;display:flex;align-items:center;gap:11px;margin:0 8px 45px}.brand-icon{width:37px;height:37px;display:grid;place-items:center;background:linear-gradient(145deg,#ac92ff,#6949f7);border-radius:12px;box-shadow:0 6px 30px #7957ff55}.brand-icon svg{width:21px}
+    .aside-label{font-size:10px;font-weight:800;letter-spacing:2px;color:#798398;padding:0 13px;margin-bottom:14px}nav{display:grid;gap:6px}nav a{padding:13px 14px;color:#9ba4b6;font-size:14px;font-weight:600;border-radius:11px;display:flex;align-items:center;gap:12px}nav a:hover,nav a.active{color:white;background:#24243b}nav a.active:before{content:"";width:4px;height:20px;border-radius:2px;background:#a68bff;margin-left:-14px;margin-right:0}nav svg{width:19px;height:19px}.sidebar-footer{margin-top:auto;background:#1b1c2b;border:1px solid #343048;border-radius:16px;padding:17px;font-size:12px;color:#aab2c0;line-height:1.6}.sidebar-footer strong{display:block;color:#fff;margin:6px 0}
+    main{min-width:0;padding:32px clamp(20px,4vw,64px) 70px}header{display:flex;align-items:center;justify-content:space-between;gap:12px}.eyebrow{font-size:12px;letter-spacing:1.6px;font-weight:850;color:#a895ff;text-transform:uppercase}.status{display:inline-flex;align-items:center;gap:9px;font-size:12px;color:#c7d1c0;background:#1c2925;border:1px solid #35523d;border-radius:20px;padding:8px 12px}.dot{background:#abffab;width:8px;height:8px;border-radius:50%;box-shadow:0 0 10px #9aff83}.status.offline{background:#332126;border-color:#723943;color:#ffb0b0}.status.offline .dot{background:#ff8585}
+    .hero{display:flex;justify-content:space-between;align-items:center;gap:22px;padding:42px 0 35px}.hero h1{font-size:clamp(34px,4vw,57px);line-height:1.04;letter-spacing:-2.4px;margin:12px 0 16px;font-weight:860}.hero h1 span{color:#ac92ff}.hero p{font-size:15px;color:#a9aec0;line-height:1.7;max-width:520px;margin:0}.hero-ornament{flex:none;width:180px;height:145px;border:1px solid #494364;border-radius:30px;transform:rotate(-8deg);background:linear-gradient(145deg,#2e294c,#171826);display:grid;place-items:center;box-shadow:20px 20px 80px #0008}.hero-ornament svg{width:92px;height:92px;filter:drop-shadow(0 15px 18px #7657fb55)}
+    .button{border:1px solid #444559;padding:11px 15px;border-radius:11px;background:#272c3b;color:#f3f2fc;font-size:13px;font-weight:750;white-space:nowrap}.button.primary{background:#9a80ff;border-color:#9a80ff;color:#120d25}.button.danger{background:#301e28;border-color:#6b3945;color:#ffb4bc}.button.ghost{background:transparent}.button:hover{background:#3b4054}.button.primary:hover{background:#b5a2ff}.button.danger:hover{background:#462632}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 25px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:24px}.stat{background:linear-gradient(145deg,#1b1e2c,#171a25);border:1px solid var(--border);border-radius:17px;padding:23px 24px;min-height:124px}.stat-label{font-size:12px;color:#a6acbd;font-weight:650;margin-bottom:19px}.stat-value{font-size:30px;letter-spacing:-1px;font-weight:800}.stat-note{font-size:11px;color:#ad91ff;margin-top:6px}
+    .dashboard{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.84fr);align-items:start;gap:22px}.panel{background:linear-gradient(150deg,#1a1e2c,#151822);border:1px solid var(--border);border-radius:19px;overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:24px 25px 18px}.panel-head h2,.subhead{font-size:17px;font-weight:780;letter-spacing:-.4px;margin:0}.subtext{font-size:12px;color:var(--muted);margin:7px 0 0}.subtle-select{border:1px solid #363e50;border-radius:9px;background:#252b3a;color:white;padding:9px 11px;outline:none;font-size:12px}
+    .table-heading{display:grid;grid-template-columns:50px minmax(0,1fr) 95px 56px;padding:13px 26px;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:1.5px;color:#838da2;border-top:1px solid #2a3040;border-bottom:1px solid #2a3040}.table-heading span:nth-child(3){text-align:right}.leaderboard-scroll{max-height:620px;overflow:auto}.player-row{display:grid;grid-template-columns:50px minmax(0,1fr) 95px 56px;align-items:center;padding:13px 25px;border-bottom:1px solid #ffffff0b;gap:0;min-height:71px}.player-row:last-child{border-bottom:0}.player-row:hover{background:#ffffff08}.rank-number{font-size:14px;color:#cbd2dd;font-weight:800}.rank-number.top{color:#e4c486}.identity{display:flex;align-items:center;gap:12px;min-width:0}.avatar{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;font-weight:850;font-size:14px;flex:none}.player-name{font-size:14px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-meta{font-size:10px;color:#8590a6;margin-top:4px}.score{text-align:right;font-weight:800;font-size:14px;letter-spacing:.3px}.small-action{margin-left:auto;background:#272d3d;border:1px solid #3b4152;color:#ab97ff;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:750}.small-action:hover{background:#3a325e}.empty{text-align:center;padding:70px 25px;color:#aab1c2}.empty strong{display:block;color:#f1f2f8;margin:12px 0 8px;font-size:17px}.empty .empty-icon{font-size:36px}
+    .side-panels{display:grid;gap:18px}.form-content{padding:0 24px 24px}.field{display:grid;gap:8px;margin-bottom:14px}.field label{font-size:11px;font-weight:700;color:#a8b1c2}.field input,.field select{outline:0;width:100%;padding:13px 14px;border-radius:10px;border:1px solid #353d50;background:#111622;color:#fff;font-size:13px}.field input:focus{border-color:#8f74f8;box-shadow:0 0 0 3px #8f74f822}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-actions{display:flex;gap:9px;flex-wrap:wrap}.response{padding:12px;border:1px solid #444063;background:#27233a;border-radius:10px;margin:14px 0 0;font-size:12px;line-height:1.5;color:#d6cefa}.response:empty{display:none}.response.error{background:#35222b;border-color:#78414b;color:#ffadb4}
+    .details{display:grid;gap:12px}.details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.details-grid div{background:#121825;border:1px solid #323747;border-radius:11px;padding:11px}.details-grid span{display:block;font-size:10px;color:#929cb2;margin-bottom:8px}.details-grid strong{font-size:21px}.mini-players{display:grid;gap:6px;margin-top:12px}.mini-player{display:flex;justify-content:space-between;padding:9px 11px;background:#171c29;border:1px solid #303648;border-radius:8px;font-size:12px}.mini-player.you{border-color:#9677ff;color:#c2aaff}
+    .lower{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:24px}.lower .panel{padding:24px}.activity{display:grid;gap:13px;margin-top:21px}.activity-item{display:flex;align-items:flex-start;gap:11px;font-size:12px;line-height:1.5}.activity-icon{width:27px;height:27px;display:grid;place-items:center;flex:none;border-radius:8px;background:#352e50;color:#cab9ff}.activity-text{color:#e3e6f0}.activity-text small{display:block;color:#8d96a8;margin-top:3px}.steps{margin-top:20px;display:grid;gap:13px}.step{display:flex;gap:12px;align-items:start}.step-no{font-size:11px;font-weight:800;border:1px solid #534975;color:#bca7ff;border-radius:8px;width:28px;height:28px;display:grid;place-items:center;flex:none}.step strong{font-size:13px}.step p{margin:4px 0 0;font-size:12px;color:#9da8b9;line-height:1.5}.note{margin-top:16px;font-size:11px;color:#838c9e;line-height:1.6}
+    .toast{position:fixed;right:22px;bottom:22px;background:#302b4a;color:#fff;border:1px solid #6b5aa6;padding:14px 17px;border-radius:12px;box-shadow:0 12px 45px #0009;max-width:330px;font-size:13px;z-index:9;opacity:0;transform:translateY(15px);pointer-events:none;transition:opacity .2s,transform .2s}.toast.visible{opacity:1;transform:none}
+    @media(max-width:1110px){.layout{grid-template-columns:75px 1fr}aside{padding:26px 12px}.brand{margin:0 0 40px}.brand-name,.aside-label,nav span,.sidebar-footer{display:none}nav a{justify-content:center;padding:14px}nav a.active:before{display:none}}@media(max-width:930px){.dashboard,.lower{grid-template-columns:1fr}.side-panels{grid-template-columns:repeat(2,1fr)}.side-panels .panel:last-child{grid-column:1/-1}.hero-ornament{width:120px;height:115px}}@media(max-width:640px){.layout{display:block}aside{position:static;width:100%;height:auto;border-right:0;border-bottom:1px solid var(--border);padding:12px 17px;display:flex;flex-direction:row;align-items:center;gap:10px}.brand{margin:0}.brand-name{display:inline;font-size:17px}nav{margin-left:auto;display:flex}nav a{padding:9px}nav a:nth-child(3){display:none}main{padding:22px 16px 48px}.hero{padding:35px 0 26px}.hero h1{font-size:37px;letter-spacing:-1.4px}.hero-ornament{display:none}.stats{gap:8px}.stat{min-height:98px;padding:14px}.stat-value{font-size:21px}.stat-label{font-size:10px;margin-bottom:12px}.stat-note{font-size:10px}.side-panels{grid-template-columns:1fr}.table-heading,.player-row{grid-template-columns:37px minmax(0,1fr) 80px 45px;padding-left:13px;padding-right:13px}.avatar{width:30px;height:30px}.identity{gap:8px}.player-name{font-size:12px}.score{font-size:12px}.panel-head{padding:20px 16px}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand"><div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="m4 17 5-5 4 3 7-9"/><path d="M15 6h5v5"/></svg></div><span class="brand-name">RankForge<span style="color:#a992ff">.</span></span></div>
+    <div class="aside-label">WORKSPACE</div>
+    <nav aria-label="Primary navigation">
+      <a class="active" href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="8" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="15" width="7" height="6" rx="1"/></svg><span>Overview</span></a>
+      <a href="#leaderboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21V11M12 21V3M17 21v-7"/></svg><span>Leaderboard</span></a>
+      <a href="#algorithm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6 6h12M5 8l6 8m8-8-6 8"/></svg><span>DSA insights</span></a>
+    </nav>
+    <div class="sidebar-footer"><span class="eyebrow">ENGINE</span><strong>C++17 · Indexable Skip List</strong>Ranks and scores come directly from your project's original C++ implementation.</div>
+  </aside>
+  <main id="overview">
+    <header><span class="eyebrow">DSA PROJECT / INTERACTIVE DEMO</span><span id="status" class="status"><span class="dot"></span><span id="statusText">Connecting to C++...</span></span></header>
+    <section class="hero"><div><h1>Every point counts.<br><span>Every rank moves.</span></h1><p>Explore a live gaming leaderboard powered by an indexable skip list. Add players, update scores, and watch ranks shift in real time.</p></div><div class="hero-ornament" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none"><path d="M20 28h60l-7 34H27L20 28Z" fill="#9378FF"/><path d="m35 28 15-17 15 17" fill="#C9B8FF"/><path d="M36 61h28v12H36zM27 77h46v9H27z" fill="#AF96FF"/><circle cx="50" cy="45" r="10" fill="#FFE0A0"/><path d="M20 34H9c-3 22 10 24 18 23m53-23h11c3 22-10 24-18 23" stroke="#A98BFF" stroke-width="6" stroke-linecap="round"/></svg></div></section>
+    <div class="toolbar"><button class="button primary" id="demoBtn">✦ Load demo players</button><button class="button" id="refreshBtn">↻ Refresh</button><button class="button danger" id="resetBtn">Reset board</button></div>
+    <div class="stats"><div class="stat"><div class="stat-label">Total competitors</div><div class="stat-value" id="playerCount">—</div><div class="stat-note">Active leaderboard entries</div></div><div class="stat"><div class="stat-label">Highest score</div><div class="stat-value" id="topScore">—</div><div class="stat-note">Current leader's points</div></div><div class="stat"><div class="stat-label">Rank lookup</div><div class="stat-value">O(log n)</div><div class="stat-note">Expected skip-list complexity</div></div></div>
+    <div class="dashboard">
+      <section class="panel" id="leaderboard"><div class="panel-head"><div><h2>Global Leaderboard</h2><p class="subtext">Ranked by score · Player ID breaks ties</p></div><label><span class="sr-only" style="position:absolute;left:-9999px">Rows to display</span><select class="subtle-select" id="limit"><option value="10">Top 10</option><option value="25" selected>Top 25</option><option value="50">Top 50</option><option value="100">Top 100</option></select></label></div><div class="table-heading"><span>Rank</span><span>Competitor</span><span>Points</span><span></span></div><div class="leaderboard-scroll" id="leaderboardRows"><div class="empty">Loading leaderboard...</div></div></section>
+      <div class="side-panels">
+        <section class="panel"><div class="panel-head"><div><h2>Manage players</h2><p class="subtext">Insert and update in C++</p></div><span style="color:#a68fff;font-size:22px">＋</span></div><form class="form-content" id="updateForm"><div class="field"><label for="playerName">PLAYER ID</label><input id="playerName" placeholder="e.g. Nova" autocomplete="off" maxlength="24" required pattern="[A-Za-z0-9_-]+"></div><div class="field"><label for="playerScore">NEW SCORE</label><input id="playerScore" placeholder="e.g. 9750" type="number" step="1" required></div><div class="form-actions"><button class="button primary" type="submit">Save score</button><button class="button ghost" type="button" id="removeBtn">Remove player</button></div><p id="updateResult" class="response" role="status"></p></form></section>
+        <section class="panel"><div class="panel-head"><div><h2>Find a rank</h2><p class="subtext">Query skips and rank spans</p></div><span style="color:#a68fff;font-size:20px">⌕</span></div><form class="form-content" id="findForm"><div class="field"><label for="findName">PLAYER ID</label><input id="findName" placeholder="Search a player..." autocomplete="off" required maxlength="24"></div><div class="form-row"><div class="field"><label for="radius">NEIGHBOURS ±</label><select id="radius"><option>1</option><option selected>2</option><option>3</option><option>5</option><option>10</option></select></div><div class="field"><label>&nbsp;</label><button class="button primary" style="width:100%;height:45px" type="submit">Find player</button></div></div><div id="playerDetails" class="response" role="status"></div></form></section>
+      </div>
+    </div>
+    <div class="lower" id="algorithm"><section class="panel"><h2 class="subhead">Live operations</h2><p class="subtext">A trace of changes during this browser session</p><div id="activity" class="activity"><div class="activity-item"><span class="activity-icon">⚡</span><div class="activity-text">Ready for your first operation<small>Add or update a player to begin.</small></div></div></div></section>
+      <section class="panel"><h2 class="subhead">Under the hood</h2><p class="subtext">How the actual C++ engine updates rankings</p><div class="steps"><div class="step"><span class="step-no">01</span><div><strong>Hash map lookup</strong><p>Locate a player's current score in expected O(1).</p></div></div><div class="step"><span class="step-no">02</span><div><strong>Skip-list update</strong><p>Remove the old entry (if any), insert the new score, and adjust forward-link spans.</p></div></div><div class="step"><span class="step-no">03</span><div><strong>Indexable rank query</strong><p>Traverse express-lane levels, adding spans to compute the new position.</p></div></div></div><div class="note">Expected insert/update/rank: O(log n) · Top-K: O(k) from the head · Tied scores: ascending player ID. The interface does not implement ranking or sorting itself.</div></section></div>
+  </main>
+</div><div id="toast" class="toast" role="status"></div>
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const safe = (v) => String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat('en-IN');
+const colors = [['#443765','#bdacff'],['#2c4952','#8fe0d2'],['#4b3b32','#f4c09b'],['#3c445f','#acc9ff'],['#4d354f','#f3a8e8']];
+let currentSize=0, lastRows=[], entries=[];
+function clock(){return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+function toast(text){$('toast').textContent=text;$('toast').classList.add('visible');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3500);}
+function status(ok){$('status').classList.toggle('offline',!ok);$('statusText').textContent=ok?'C++ ENGINE CONNECTED':'ENGINE OFFLINE';}
+async function api(path, options={}){
+  let res;
+  try { res=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}}); }
+  catch(e){status(false);throw new Error('Unable to connect to the local C++ server.');}
+  const data=await res.json();if(!res.ok)throw new Error(data.error||'Operation failed');status(true);return data;
+}
+const post=(url,body={})=>api(url,{method:'POST',body:JSON.stringify(body)});
+function log(message,explanation){entries.unshift({message,explanation,time:clock()});entries=entries.slice(0,5);$('activity').innerHTML=entries.map(e=>`<div class="activity-item"><span class="activity-icon">↗</span><div class="activity-text">${safe(e.message)}<small>${safe(e.explanation)} · ${safe(e.time)}</small></div></div>`).join('');}
+function avatar(name,rank){const [bg,fg]=colors[(rank-1)%colors.length];return `<div class="avatar" style="background:${bg};color:${fg}">${safe(name.slice(0,2).toUpperCase())}</div>`;}
+function paint(rows){
+  lastRows=rows;
+  const root=$('leaderboardRows');
+  if(!rows.length){root.innerHTML='<div class="empty"><div class="empty-icon">🏆</div><strong>No players yet</strong>Load demo players or add your first competitor.</div>';return;}
+  root.innerHTML=rows.map(p=>`<div class="player-row"><span class="rank-number ${p.rank<=3?'top':''}">${p.rank===1?'🥇':p.rank===2?'🥈':p.rank===3?'🥉':'#'+p.rank}</span><div class="identity">${avatar(p.id,p.rank)}<div style="min-width:0"><div class="player-name">${safe(p.id)}</div><div class="player-meta">Competitor</div></div></div><span class="score">${nf.format(p.score)}</span><button class="small-action" data-player="${safe(p.id)}" aria-label="Inspect ${safe(p.id)}">View</button></div>`).join('');
+  root.querySelectorAll('[data-player]').forEach(button=>button.addEventListener('click',()=>inspect(button.dataset.player)));
+}
+async function refresh(silent=false){
+  try{const data=await api('/api/state?limit='+$('limit').value);currentSize=data.size;$('playerCount').textContent=nf.format(data.size);$('topScore').textContent=data.players.length?nf.format(data.players[0].score):'—';paint(data.players);if(!silent)toast('Leaderboard refreshed from C++');}catch(e){if(!silent)toast(e.message);}
+}
+function displayResponse(element,message,error=false){element.classList.toggle('error',error);element.textContent=message;}
+async function inspect(name){$('findName').value=name;await lookup();document.querySelector('#findForm').scrollIntoView({behavior:'smooth',block:'nearest'});}
+async function lookup(){
+ const name=$('findName').value.trim();if(!name)return;
+ try{
+  const data=await api('/api/nearby?id='+encodeURIComponent(name)+'&radius='+$('radius').value);
+  const t=data.target;
+  $('playerDetails').classList.remove('error');
+  $('playerDetails').innerHTML=`<div class="details"><strong>${safe(t.id)}'s ranking</strong><div class="details-grid"><div><span>GLOBAL RANK</span><strong>#${t.rank}</strong></div><div><span>TOTAL POINTS</span><strong>${nf.format(t.score)}</strong></div></div><span style="font-size:11px;color:#aca5c9">Players around ${safe(t.id)}</span><div class="mini-players">${data.players.map(p=>`<div class="mini-player ${p.id===t.id?'you':''}"><span>#${p.rank} · ${safe(p.id)}</span><strong>${nf.format(p.score)}</strong></div>`).join('')}</div></div>`;
+  log('Rank lookup: '+name,'Traversed skip-list levels using span totals');
+ }catch(e){$('playerDetails').innerHTML='';displayResponse($('playerDetails'),e.message,true);}
+}
+$('updateForm').addEventListener('submit',async(e)=>{
+ e.preventDefault();const button=e.submitter;button.disabled=true;
+ try{
+  const id=$('playerName').value.trim();const raw=Number($('playerScore').value);
+  if(!Number.isSafeInteger(raw))throw new Error('Enter a safe integer score.');
+  const data=await post('/api/upsert',{id,score:raw});displayResponse($('updateResult'),data.message);
+  log(data.message,'C++ delete/insert + span maintenance + rank query');toast(data.message);await refresh(true);
+ }catch(err){displayResponse($('updateResult'),err.message,true);}finally{button.disabled=false;}
+});
+$('removeBtn').addEventListener('click',async()=>{
+ const id=$('playerName').value.trim();if(!id){displayResponse($('updateResult'),'Enter a player ID to remove.',true);return;}
+ $('removeBtn').disabled=true;
+ try{const data=await post('/api/remove',{id});displayResponse($('updateResult'),data.message);toast(data.message);log(data.message,'C++ skip-list node and hash-map entry removed');await refresh(true);}
+ catch(e){displayResponse($('updateResult'),e.message,true);}finally{$('removeBtn').disabled=false;}
+});
+$('findForm').addEventListener('submit',e=>{e.preventDefault();lookup();});
+$('limit').addEventListener('change',()=>refresh(true));$('refreshBtn').addEventListener('click',()=>refresh());
+$('demoBtn').addEventListener('click',async()=>{$('demoBtn').disabled=true;try{const data=await post('/api/demo');toast(data.message);log('Demo players loaded','Each row added by the original C++ skip-list engine');await refresh(true);}catch(e){toast(e.message);}finally{$('demoBtn').disabled=false;}});
+$('resetBtn').addEventListener('click',async()=>{if(!confirm('Clear all players? This restarts the in-memory C++ leaderboard.'))return;$('resetBtn').disabled=true;try{const data=await post('/api/reset');$('playerDetails').innerHTML='';$('updateResult').textContent='';toast('Leaderboard reset');log('Leaderboard reset','New empty C++ skip list');await refresh(true);}catch(e){toast(e.message);}finally{$('resetBtn').disabled=false;}});
+refresh(true);setInterval(()=>{if(!document.hidden)refresh(true);},5000);
+</script>
+</body>
+</html>

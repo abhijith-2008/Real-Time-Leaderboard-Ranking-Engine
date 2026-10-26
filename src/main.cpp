@@ -34,7 +34,7 @@ bool parseCount(const std::string& s, size_t& out) {
 
 void printRows(const std::vector<Entry>& rows, size_t firstRank) {
     for (size_t i = 0; i < rows.size(); ++i) {
-        std::cout << firstRank + i << ". " << std::left << std::setw(12) << rows[i].id << rows[i].score << "\n";
+        std::cout << firstRank + i << ". " << std::left << std::setw(12) << rows[i].id << " " << rows[i].score << "\n";
     }
 }
 

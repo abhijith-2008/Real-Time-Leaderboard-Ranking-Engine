@@ -1,145 +1,202 @@
-# 🏆 Real-Time Leaderboard Ranking Engine using an Indexable Skip List
+# Real-Time Leaderboard Ranking Engine Using an Indexable Skip List
 
-A real-time leaderboard engine for large-scale online games, built on an **Indexable Skip List** (a skip list augmented with *rank spans*). It supports fast score updates, rank lookups, top-K queries, and "players around me" queries, all in **O(log n)** expected time.
+## About the Project
 
-> **DSA Project** · Data Structures & Algorithms
-> **Team:** Abhijith, Rajaneesh, Haripranav Rajesh, Santhosh Reddy
-> **Institution / Course:** Amrita Vishwa Vidyapeetham, Coimbatore · Data Structures & Algorithms
+This project implements a real-time leaderboard system using an **Indexable Skip List** in C++.
 
----
+The idea is to make leaderboard operations efficient even when the number of players becomes large. Instead of sorting all the players every time someone's score changes, the system maintains players in ranked order and uses rank spans to navigate the list efficiently.
 
-## 📌 Table of Contents
+The leaderboard supports score updates, player removal, rank lookups, top-K queries, and queries to find players around a particular player.
 
-1. [Problem Statement](#-problem-statement)
-2. [Why an Indexable Skip List?](#-why-an-indexable-skip-list)
-3. [How It Works](#-how-it-works)
-4. [Features](#-features)
-5. [Time & Space Complexity](#-time--space-complexity)
-6. [Project Structure](#-project-structure)
-7. [Getting Started](#-getting-started)
-8. [Usage Example](#-usage-example)
-9. [Testing & Benchmarks](#-testing--benchmarks)
-10. [Limitations & Future Work](#-limitations--future-work)
-11. [References](#-references)
-12. [Contributors](#-contributors)
+Most of these operations take **O(log n) expected time**, making the skip list a suitable choice for applications where scores change frequently.
+
+**Project:** Data Structures and Algorithms
+**Team:** Abhijith, Rajaneesh, Haripranav Rajesh, Santhosh Reddy
+**Institution:** Amrita Vishwa Vidyapeetham, Coimbatore
 
 ---
 
-## 🎯 Problem Statement
+## Table of Contents
 
-Online games with millions of players need a leaderboard that:
-
-- **Updates instantly** when a player's score changes (thousands of updates per second).
-- **Answers rank queries** like *"What is my rank?"* without scanning every player.
-- **Returns the top K players** for the global scoreboard.
-- **Shows neighbours**: the players ranked just above and below a given player.
-
-A naive approach (sorted array or list) makes either updates or rank lookups **O(n)**, which does not scale. This project solves the problem using an **Indexable Skip List** that keeps everything at **O(log n)**.
-
----
-
-## 💡 Why an Indexable Skip List?
-
-| Approach | Insert / Update | Get Rank | Top-K | Notes |
-|---|---|---|---|---|
-| Sorted array | O(n) | O(log n) | O(K) | Shifting elements is slow |
-| Unsorted array | O(1) | O(n log n) | O(n log K) | Must sort/scan for ranks |
-| Balanced BST (no augmentation) | O(log n) | O(n) | O(K + log n) | No cheap rank |
-| Augmented BST (order-statistic tree) | O(log n) | O(log n) | O(K + log n) | Complex rotations |
-| **Indexable Skip List** | **O(log n)** | **O(log n)** | **O(K + log n)** | Simple, no rotations, easy to extend |
-
-A skip list gives us balanced-tree performance using **randomization instead of rotations**. That makes it simpler to implement, easier to reason about, and friendly to concurrent updates. Adding **rank spans** to each link turns it into an *indexable* structure, so we can jump straight to the k-th element or compute any element's rank.
+1. [Problem Statement](#problem-statement)
+2. [Why an Indexable Skip List?](#why-an-indexable-skip-list)
+3. [How It Works](#how-it-works)
+4. [Features](#features)
+5. [Time and Space Complexity](#time-and-space-complexity)
+6. [Project Structure](#project-structure)
+7. [Getting Started](#getting-started)
+8. [Usage Example](#usage-example)
+9. [Testing and Benchmarks](#testing-and-benchmarks)
+10. [Limitations and Future Work](#limitations-and-future-work)
+11. [References](#references)
+12. [Contributors](#contributors)
 
 ---
 
-## ⚙️ How It Works
+## Problem Statement
 
-### 1. Skip List basics
+In online games, a leaderboard needs to keep track of player scores and display their rankings. When there are thousands or even millions of players, updating scores and calculating ranks efficiently becomes important.
 
-A skip list is a stack of sorted linked lists. The bottom level (Level 0) holds **every** player; each higher level holds a random subset that acts as an "express lane".
+The system should be able to:
 
-```
+* Update a player's score without having to sort the entire leaderboard again.
+* Find a player's rank without checking every player individually.
+* Display the top K players.
+* Show the players ranked just above and below a particular player.
+
+A straightforward sorted array or linked list can become inefficient when updates are frequent or rank queries are needed.
+
+For example, inserting a new entry into a sorted array may require shifting many elements. Similarly, finding a player's position in an ordinary linked list requires traversing the list.
+
+To address these issues, we use an **Indexable Skip List**, which supports efficient updates and rank-related queries through multiple levels of forward pointers and rank spans.
+
+---
+
+## Why an Indexable Skip List?
+
+We considered different data structures for maintaining the leaderboard.
+
+| Data Structure                       | Insert / Update | Get Rank     | Top-K            | Notes                                                         |
+| ------------------------------------ | --------------- | ------------ | ---------------- | ------------------------------------------------------------- |
+| Sorted array                         | O(n)            | O(log n)     | O(K)             | Insertions and updates may require shifting elements          |
+| Unsorted array                       | O(1)            | O(n log n)   | O(n log K)       | Finding ranks requires additional processing                  |
+| Balanced BST without augmentation    | O(log n)        | O(n)         | O(K + log n)     | Does not directly support efficient rank queries              |
+| Augmented BST (order-statistic tree) | O(log n)        | O(log n)     | O(K + log n)     | Supports rank queries but requires additional balancing logic |
+| **Indexable Skip List**              | **O(log n)**    | **O(log n)** | **O(K + log n)** | Uses randomized levels and does not require rotations         |
+
+A skip list uses multiple levels of linked lists to make searching faster. Unlike a balanced binary search tree, it relies on randomization rather than rotations to maintain its structure.
+
+We extended the skip list by storing a **span** with each forward pointer. These spans help the system calculate player ranks and move directly to a particular position.
+
+This makes the structure useful for a leaderboard where both score updates and ranking queries need to be handled efficiently.
+
+---
+
+## How It Works
+
+### 1. Understanding the Skip List
+
+A skip list consists of multiple levels of linked lists.
+
+The bottom level, Level 0, contains every player. Higher levels contain selected nodes and allow the algorithm to skip over several entries while searching.
+
+For example:
+
+```text
 Level 3:  HEAD ─────────────────────────────▶ 90 ─────────────────▶ NIL
 Level 2:  HEAD ─────────────▶ 55 ───────────▶ 90 ─────────────────▶ NIL
 Level 1:  HEAD ───▶ 30 ─────▶ 55 ───▶ 72 ───▶ 90 ────▶ 95 ────────▶ NIL
 Level 0:  HEAD ─▶ 10 ─▶ 30 ─▶ 55 ─▶ 72 ─▶ 90 ─▶ 95 ─▶ 99 ───────▶ NIL
 ```
 
-Each node is promoted to the next level with probability `p` (typically `0.25` or `0.5`), giving an expected height of **O(log n)**.
+Each node has a randomly generated height. A node is promoted to the next level with probability `p`, which is typically `0.25` or `0.5`.
 
-### 2. Rank spans (the "indexable" part)
+This arrangement gives the skip list an expected height of O(log n), allowing searches to skip over many nodes instead of visiting them one by one.
 
-Every forward pointer stores a **span**: the number of Level-0 nodes it skips over.
+### 2. Rank Spans: What Makes the Skip List Indexable?
 
+A regular skip list makes searching efficient, but it does not automatically tell us the rank of a node.
+
+To support rank-based operations, we store a span alongside each forward pointer.
+
+```text
+node.level[i].forward  →  Next node at level i
+node.level[i].span     →  Number of bottom-level steps covered by the pointer
 ```
-node.level[i].forward  →  next node at level i
-node.level[i].span     →  how many bottom-level steps that jump covers
-```
 
-- **Get rank:** while searching for a player, add up the spans of every link you follow. The total is the player's rank.
-- **Get by rank:** walk down the levels, following a link only if `traversed + span ≤ target rank`.
-- **Insert/Delete:** update spans of the links that cross the changed position.
+The spans allow the system to keep track of how far it has moved through the leaderboard.
 
-### 3. Ordering rule
+They are used in the following operations:
 
-Players are ordered by **score (descending)**, with ties broken by **player ID (ascending)** so that ordering is always deterministic.
+* **Finding a rank:** The algorithm adds the spans of the forward pointers it follows. The total gives the player's rank.
+* **Finding a player by rank:** The algorithm moves through the levels while ensuring that the accumulated span does not exceed the requested rank.
+* **Insertion and deletion:** The spans of affected pointers are updated whenever a player is added or removed.
 
-### 4. Updating a score
+Maintaining these spans correctly is important because the query operations depend on them.
 
-A score update is performed as **delete old entry → insert new entry**. A `HashMap<playerId, score>` is kept alongside the skip list so we can locate a player's current score in O(1) before the delete.
+### 3. How Players Are Ranked
+
+Players are sorted using two rules:
+
+1. Players with higher scores appear first.
+2. If two players have the same score, their player IDs are compared in ascending order.
+
+Using the player ID as a tie-breaker ensures that the ordering remains deterministic when scores are equal.
+
+### 4. Updating a Player's Score
+
+When a player's score changes, the system removes the old entry from the skip list and inserts a new entry with the updated score.
+
+A hash map stores each player's current score alongside the skip list.
+
+This allows the system to look up a player's existing score in expected O(1) time before updating their position in the leaderboard.
 
 ---
 
-## ✨ Features
+## Features
 
-- ➕ **Add / update player score** in O(log n)
-- ❌ **Remove player** from the leaderboard
-- 🔢 **Get rank** of any player (1-indexed)
-- 🎯 **Get player by rank**
-- 🥇 **Top-K query** for the global leaderboard
-- 👥 **Neighbour query**: players ranked around a given player (e.g., ±5)
-- 📊 **Range query** by rank or by score
-- 🧪 **Stress tests and benchmarks** against a naive sorted-array baseline
+The leaderboard currently supports the following operations:
 
----
-
-## ⏱️ Time & Space Complexity
-
-| Operation | Expected Time | Worst Case |
-|---|---|---|
-| `updateScore(player, score)` | O(log n) | O(n) *(very unlikely)* |
-| `removePlayer(player)` | O(log n) | O(n) |
-| `getRank(player)` | O(log n) | O(n) |
-| `getByRank(k)` | O(log n) | O(n) |
-| `topK(k)` | O(log n + k) | O(n) |
-| `neighbours(player, r)` | O(log n + r) | O(n) |
-
-**Space:** O(n) expected. Each node has on average `1 / (1 − p)` forward pointers.
+* **Add or update a player:** Insert a new player or update an existing player's score.
+* **Remove a player:** Delete a player from the leaderboard.
+* **Get rank:** Find a player's current rank, using 1-based indexing.
+* **Get player by rank:** Retrieve the player occupying a particular position.
+* **Top-K query:** Display the highest-ranked K players.
+* **Neighbour query:** Find players ranked around a particular player, such as the three players above and below them.
+* **Range queries:** Retrieve players within a specified rank range or score range.
+* **Structural validation:** Check whether the skip list's ordering and span information are consistent.
+* **Stress testing:** Compare the implementation against a simpler sorted-vector baseline.
+* **Benchmarking:** Measure the performance of the skip list and compare it with a sorted-array approach.
 
 ---
 
-## 📁 Project Structure
+## Time and Space Complexity
 
-```
+Let `n` represent the number of players in the leaderboard.
+
+The expected time complexities of the main operations are:
+
+| Operation                    | Expected Time | Worst Case |
+| ---------------------------- | ------------- | ---------- |
+| `updateScore(player, score)` | O(log n)      | O(n)       |
+| `removePlayer(player)`       | O(log n)      | O(n)       |
+| `getRank(player)`            | O(log n)      | O(n)       |
+| `getByRank(k)`               | O(log n)      | O(n)       |
+| `topK(k)`                    | O(log n + k)  | O(n)       |
+| `neighbours(player, r)`      | O(log n + r)  | O(n)       |
+
+The skip list provides these expected bounds because its levels are generated randomly. The worst-case time can still reach O(n).
+
+**Space complexity:** O(n) expected.
+
+Each node contains an average of `1 / (1 - p)` forward pointers, where `p` is the promotion probability. The overall space requirement grows linearly with the number of players.
+
+---
+
+## Project Structure
+
+The project is organized into separate files for the skip list implementation, leaderboard interface, tests, and benchmarks.
+
+```text
 .
 ├── include/
-│   ├── types.h                 # Entry, ordering rule (before), constants
-│   ├── IndexableSkipList.h     # Skip list class + rank span invariants
-│   └── Leaderboard.h           # Game-facing API
+│   ├── types.h                 # Entry, ordering rule, and constants
+│   ├── IndexableSkipList.h     # Skip list class and rank-span invariants
+│   └── Leaderboard.h           # Leaderboard API
 ├── src/
-│   ├── skiplist_core.cpp       # Node/levels, random level, insert, remove
-│   ├── skiplist_query.cpp      # getRank, getByRank, topK, neighbours, ranges
-│   ├── skiplist_validate.cpp   # Debug checker for ordering and span invariants
-│   ├── Leaderboard.cpp         # Hash map + skip list wrapper
-│   └── main.cpp                # CLI demo
+│   ├── skiplist_core.cpp       # Node levels, random levels, insert, remove
+│   ├── skiplist_query.cpp      # Rank, top-K, neighbours, and range queries
+│   ├── skiplist_validate.cpp   # Ordering and span validation
+│   ├── Leaderboard.cpp         # Hash map and skip list integration
+│   └── main.cpp                # Command-line interface
 ├── tests/
-│   ├── test_core.cpp           # insert/remove + span validation
-│   ├── test_query.cpp          # every query vs. a sorted vector
-│   ├── test_leaderboard.cpp    # wrapper behaviour, ties, removals
-│   ├── naive_leaderboard.h     # Sorted-vector baseline
-│   └── stress_test.cpp         # 100,000 random ops vs. the baseline
+│   ├── test_core.cpp           # Insertion, removal, and span checks
+│   ├── test_query.cpp          # Query results compared with a sorted vector
+│   ├── test_leaderboard.cpp    # Leaderboard API, ties, and removals
+│   ├── naive_leaderboard.h     # Sorted-vector reference implementation
+│   └── stress_test.cpp         # 100,000 random operations against the baseline
 ├── benchmarks/
-│   └── benchmark.cpp           # Skip list vs. sorted array
+│   └── benchmark.cpp           # Skip list vs. sorted-array benchmark
 ├── Makefile
 ├── OWNERS.md
 └── README.md
@@ -147,121 +204,259 @@ A score update is performed as **delete old entry → insert new entry**. A `Has
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- A C++17 compiler (`g++` 9 or newer, or `clang++`)
-- `make` (on Windows use MSYS2/MinGW or WSL)
+Before running the project, make sure you have:
 
-### Clone the repository
+* A C++17 compiler, such as `g++` version 9 or newer, or `clang++`.
+* `make`.
+* On Windows, MSYS2/MinGW or WSL can be used to provide the required build tools.
+
+### Clone the Repository
+
+Open a terminal and run:
 
 ```bash
 git clone https://github.com/abhijith-2008/Real-Time-Leaderboard-Ranking-Engine.git
 cd Real-Time-Leaderboard-Ranking-Engine
 ```
 
-### Build & run
+### Build and Run
+
+Build the project using:
 
 ```bash
-make                                   # builds build/leaderboard
-./build/leaderboard                    # interactive CLI (type "help")
-./build/leaderboard --no-prompt < commands.txt   # scripted run
+make
+```
 
-make test                              # all tests
-make bench                             # benchmark table
+This builds the leaderboard executable at `build/leaderboard`.
+
+To start the interactive command-line interface, run:
+
+```bash
+./build/leaderboard
+```
+
+You can type `help` inside the program to see the available commands.
+
+To run the program using commands stored in a file, use:
+
+```bash
+./build/leaderboard --no-prompt < commands.txt
+```
+
+To run the tests:
+
+```bash
+make test
+```
+
+To run the benchmarks:
+
+```bash
+make bench
 ```
 
 ---
 
-## 🕹️ Usage Example
+## Usage Example
+
+The following example shows how the leaderboard behaves when players are added, queried, and updated.
+
+### Adding Players
 
 ```text
 > add Alice 1500
 Alice added at #1 with score 1500
+
 > add Bob 2300
 Bob added at #1 with score 2300
+
 > add Charlie 1800
 Charlie added at #2 with score 1800
+
 > add Dave 2300
 Dave added at #2 with score 2300
+```
 
+Bob and Dave have the same score, so their order is determined by their player IDs.
+
+### Displaying the Top Players
+
+```text
 > top 3
 1. Bob         2300
 2. Dave        2300
 3. Charlie     1800
+```
 
+The `top` command returns the highest-ranked players without requiring the entire leaderboard to be sorted again.
+
+### Finding a Player's Rank
+
+```text
 > rank Alice
 Alice is ranked #4 with score 1500
+```
 
+### Updating a Score
+
+```text
 > update Alice 2000
 Alice moved from #4 to #3
+```
 
+Alice's new score changes her position in the leaderboard.
+
+### Finding Nearby Players
+
+```text
 > around Alice 1
 2. Dave        2300
 3. Alice       2000
 4. Charlie     1800
 ```
 
-Other commands: `remove`, `score`, `at <rank>`, `around <name> [radius]`, `size`, `help`, `quit`.
+The `around` command displays the players immediately surrounding Alice in the ranking.
+
+Other available commands include:
+
+* `remove` — Remove a player.
+* `score` — Find a player's score.
+* `at <rank>` — Retrieve the player at a particular rank.
+* `around <name> [radius]` — Display players around a given player.
+* `size` — Display the number of players.
+* `help` — Display available commands.
+* `quit` — Exit the program.
 
 ---
 
-## 🧪 Testing & Benchmarks
+## Testing and Benchmarks
 
-Run everything with:
+We use both correctness tests and performance benchmarks to evaluate the implementation.
+
+### Running the Tests
+
+Run the following commands from the project directory:
 
 ```bash
-make test    # all correctness tests and the stress test
-make bench   # benchmark table
+make test
 ```
 
-**Correctness:**
+This runs the correctness tests and the stress test.
 
-- `test_core` inserts and removes thousands of entries (including heavy score ties) and runs the span validator after every operation.
-- `test_query` compares `getRank`, `getByRank`, `topK`, `neighbours`, `rangeByRank` and `rangeByScore` against a plain sorted vector, including edge cases (empty list, out-of-range ranks, unknown players).
-- `test_leaderboard` checks the game-facing API: updates, ties, removals and unknown players.
-- `stress_test` runs 100,000 random operations on the skip list leaderboard and on a brute-force sorted-vector baseline, comparing every result, and validates the structure's spans throughout.
+To run the benchmarks separately:
 
-**Benchmarks:** measured with `make bench` on WSL2 (Ubuntu), `g++ -std=c++17 -O2`. Times are average microseconds per operation (lower is better). Top-K uses K = 100.
+```bash
+make bench
+```
 
-| Players (n) | Skip List update | Sorted Array update | Skip List rank | Sorted Array rank | Skip List top-K | Sorted Array top-K |
-|---|---|---|---|---|---|---|
-| 10,000 | 1.30 | 43.82 | 0.56 | 0.25 | 1.29 | 0.64 |
-| 100,000 | 3.57 | 428.97 | 1.62 | 0.49 | 0.99 | 0.64 |
-| 1,000,000 | 9.33 | 4480.93 | 3.92 | 1.31 | 1.08 | 0.63 |
+### Correctness Tests
 
-**Reading the results:** score updates are where the skip list wins decisively, about 34x faster at 10,000 players and about 480x faster at 1,000,000, because the sorted array must shift O(n) elements on every update. The sorted array stays faster for rank lookups and top-K, since binary search and copying a contiguous block are very cache friendly, while a skip list follows pointers. Both rank lookups are O(log n), so that gap is a constant factor. The skip list is the only structure here that keeps updates, rank queries and top-K all fast as the player count grows. Sorted array update averages use 20,000, 2,000 and 200 operations for the three sizes, because each update is O(n).
+The project includes several tests to check the behaviour of the skip list and the leaderboard.
+
+**`test_core`**
+
+Tests insertion and removal of thousands of entries, including cases where many players have the same score. The span validator is run after every operation to check the structure.
+
+**`test_query`**
+
+Checks the results of `getRank`, `getByRank`, `topK`, `neighbours`, `rangeByRank`, and `rangeByScore` against a plain sorted vector.
+
+It also covers edge cases such as an empty list, invalid ranks, and unknown players.
+
+**`test_leaderboard`**
+
+Checks the leaderboard interface, including score updates, tie-breaking, player removal, and requests involving unknown players.
+
+**`stress_test`**
+
+Runs 100,000 randomized operations against both the skip list and a sorted-vector reference implementation.
+
+The results are compared to check whether both implementations produce the same answers. The skip list's structural invariants are also checked throughout the test.
+
+Using a simpler reference implementation gives us a way to verify the results independently of the skip list's internal logic.
+
+### Benchmark Setup
+
+The benchmarks compare the skip list against a sorted-array implementation for different leaderboard sizes.
+
+The tests were measured using:
+
+* **Environment:** WSL2 (Ubuntu)
+* **Compiler:** `g++`
+* **Language standard:** C++17
+* **Optimization:** `-O2`
+* **Reported measurement:** Average microseconds per operation
+* **Top-K size:** K = 100
+
+Lower execution times indicate better performance.
+
+### Benchmark Results
+
+| Players (n) | Skip List Update (µs) | Sorted Array Update (µs) | Skip List Rank (µs) | Sorted Array Rank (µs) | Skip List Top-K (µs) | Sorted Array Top-K (µs) |
+| ----------- | --------------------: | -----------------------: | ------------------: | ---------------------: | -------------------: | ----------------------: |
+| 10,000      |                  1.30 |                    43.82 |                0.56 |                   0.25 |                 1.29 |                    0.64 |
+| 100,000     |                  3.57 |                   428.97 |                1.62 |                   0.49 |                 0.99 |                    0.64 |
+| 1,000,000   |                  9.33 |                  4480.93 |                3.92 |                   1.31 |                 1.08 |                    0.63 |
+
+### What the Results Show
+
+The main difference appears in score updates.
+
+At 10,000 players, the skip list update takes an average of 1.30 µs, compared with 43.82 µs for the sorted array.
+
+At 1,000,000 players, the times are 9.33 µs and 4480.93 µs, respectively.
+
+This happens because updating an entry in a sorted array can require shifting O(n) elements. The skip list, on the other hand, has an expected update complexity of O(log n).
+
+The benchmark also shows that the sorted-array implementation is faster for rank lookups and top-K queries in these measurements.
+
+This is partly because arrays store elements contiguously in memory, making binary search and copying a block of elements relatively efficient. Skip lists rely on pointer traversal, which can introduce additional overhead.
+
+Both implementations have O(log n) rank-query complexity in the comparison used here, but their actual execution times differ.
+
+The sorted-array update averages use 20,000, 2,000, and 200 operations for the three respective leaderboard sizes because each update can require O(n) work.
+
+Overall, the results highlight the main trade-off: **the skip list handles score updates much more efficiently as the leaderboard grows, while the sorted-array approach performs better for some read operations in these benchmarks.**
 
 ---
 
-## 🔮 Limitations & Future Work
+## Limitations and Future Work
 
-- Currently **single-threaded**; a lock-based or lock-free concurrent version would suit real game servers.
-- **In-memory only**; persistence (snapshots / write-ahead log) is not included.
-- Add **sharded leaderboards** (per region / per season) with a merge step for the global view.
-- Support **time-windowed leaderboards** (daily / weekly resets).
-- Tune the promotion probability `p` and max level based on expected player count.
+The current implementation covers the main leaderboard operations, but there are several areas that could be developed further.
 
----
+* **Concurrency:** The implementation is currently single-threaded. A lock-based or lock-free version could make it more suitable for game servers handling simultaneous updates.
+* **Persistence:** The leaderboard stores its data in memory. Persistent storage, snapshots, or a write-ahead log could help preserve the leaderboard across restarts.
+* **Sharded leaderboards:** Separate leaderboards could be maintained for different regions or seasons, with a merge step used to produce a global ranking.
+* **Time-based leaderboards:** Daily or weekly leaderboards could be added with automatic resets.
+* **Parameter tuning:** The promotion probability `p` and maximum level could be adjusted based on the expected number of players.
 
-## 📚 References
-
-1. William Pugh, *"Skip Lists: A Probabilistic Alternative to Balanced Trees"*, Communications of the ACM, 1990.
-2. Redis Sorted Sets (`ZSET`): production use of a skip list with spans for rank queries.
-3. Cormen et al., *Introduction to Algorithms*: order-statistic trees (for comparison).
+These improvements would extend the current implementation beyond a single-process, in-memory leaderboard.
 
 ---
 
-## 👥 Contributors
+## References
 
-| Name | Roll No. | Role | Responsibilities |
-|---|---|---|---|
-| `Ch. Abhijith` | `CB.SC.U4CSE25316` | Core Data Structure | Node and level design, random level generation, rank-span maintenance, insert and delete |
-| `V. Rajaneesh` | `CB.SC.U4CSE25362` | Rank & Query Operations | `getRank`, `getByRank`, `topK`, neighbour queries, range queries |
-| `Haripranav Rajesh` | `CB.SC.U4CSE25322` | Leaderboard API & Demo | Leaderboard wrapper with hash map, score update logic, tie-breaking, CLI / demo driver |
-| `Santhosh Reddy` | `CB.SC.U4CSE25327` | Testing, Benchmarks & Docs | Unit and stress tests, benchmark vs. sorted array, README and project report |
+1. William Pugh, *Skip Lists: A Probabilistic Alternative to Balanced Trees*, Communications of the ACM, 1990.
+2. Redis Sorted Sets (`ZSET`), which use skip lists with spans to support rank-related operations.
+3. Thomas H. Cormen et al., *Introduction to Algorithms*, for a comparison with order-statistic trees.
 
 ---
 
+## Contributors
 
+This project was divided into four main areas: the core data structure, query operations, application integration, and testing.
+
+| Name              | Roll Number        | Role                                   | Responsibilities                                                                                    |
+| ----------------- | ------------------ | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Ch. Abhijith      | `CB.SC.U4CSE25316` | Core Data Structure                    | Node and level design, random-level generation, rank-span maintenance, insertion, and deletion      |
+| V. Rajaneesh      | `CB.SC.U4CSE25362` | Rank and Query Operations              | `getRank`, `getByRank`, `topK`, neighbour queries, and range queries                                |
+| Haripranav Rajesh | `CB.SC.U4CSE25322` | Leaderboard API and Demo               | Leaderboard wrapper, hash map integration, score-update logic, tie-breaking, and CLI                |
+| Santhosh Reddy    | `CB.SC.U4CSE25327` | Testing, Benchmarks, and Documentation | Unit tests, stress testing, benchmark comparison against a sorted array, README, and project report |
+
+---
+
+*Developed as part of the Data Structures and Algorithms course at Amrita Vishwa Vidyapeetham, Coimbatore.*
